@@ -1,81 +1,194 @@
 import { useState } from "react";
-import "./Form.css";
+import FileUpload from "./FileUpload";
+import ErrorMessage from "./ErrorMessage";
+import ProcessButton from "./ProcessButton";
+import RedactColumn from "./RedactColumn";
+import NormalizeColumn from "./NormalizeColumn";
+import RedactDate from "./RedactDate";
+import CSVPreview from "./CSVPreview";
+import DownloadSection from "./DownloadSection";
+import KAnonymity from "./KAnonymity";
+import IDiversity from "./IDiversity";
+import RedactZip from "./RedactZip";
+import MInvariance from "./MInvarience";
+import SyntheticNumCol from "./SyntheticNumCol";
+import SyntheticCatCol from "./SyntheticCatCol";
 
 const Form = () => {
     const [csvFile, setCsvFile] = useState(null);
-    const [columns, setColumns] = useState("");
-    const [kValue, setKValue] = useState("");
+    const [tableData, setTableData] = useState([]);
+    const [downloadUrl, setDownloadUrl] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState("");
+    const [redactColumn, setRedactColumn] = useState("");
+    const [normalizeColumn, setNormalizeColumn] = useState("");
+    const [redactZip, setRedactZip] = useState("");
+    const [fileName, setFileName] = useState("");
+    const [findK, setFindK] = useState(false);
+    const [syntheticCol, setSyntheticCol] = useState("")
+    const [syntheticll, setSyntheticll] = useState(0)
+    const [syntheticul, setSyntheticul] = useState(0)
+    const [syntheticdt, setSyntheticdt] = useState("int")
 
     const handleFileChange = (event) => {
-        setCsvFile(event.target.files[0]);
+        const file = event.target.files[0];
+        if (!file) return;
+        setCsvFile(file);
+        setFileName(file.name);
+        setError("");
     };
 
-    const handleColumnsChange = (event) => {
-        setColumns(event.target.value);
+    const parseCSV = (csvString) => {
+        const rows = csvString.split("\n").map(row => row.split(","));
+        setTableData(rows);
     };
 
-    const handleKChange = (event) => {
-        const value = event.target.value;
-        if (/^\d*$/.test(value)) {
-            setKValue(value);
-        }
-    };
-
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-
-        if (!csvFile) {
-            alert("Please upload a CSV file.");
-            return;
-        }
-
-        if (!columns.trim()) {
-            alert("Please enter column names.");
-            return;
-        }
-
-        if (!kValue || parseInt(kValue, 10) < 1) {
-            alert("Please enter a valid k-anonymity value (k ≥ 1).");
-            return;
-        }
-
+    const uploadFile = async (file) => {
         const formData = new FormData();
-        formData.append("file", csvFile);
-        formData.append("columns", columns);
-        formData.append("k", parseInt(kValue, 10));
+        formData.append("file", file);
 
         try {
             const response = await fetch("http://localhost:8000/input", {
                 method: "POST",
                 body: formData,
             });
+            if (!response.ok) throw new Error("Server responded with an error");
 
-            const data = await response.json();
-            console.log(data)
+            const result = await response.json();
+            setDownloadUrl(URL.createObjectURL(new Blob([result.file], { type: "text/csv" })));
+            parseCSV(result.file);
+            setFindK(true);
         } catch (error) {
-            console.log("Failed to connect to the server." + error);
+            setError("Failed to process the file. Please try again.");
         }
     };
 
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        if (!csvFile) return setError("Please upload a CSV file.");
+        setIsLoading(true);
+        await uploadFile(csvFile);
+        setIsLoading(false);
+    };
+
+    const processColumn = async (url, column) => {
+        const formData = new FormData();
+        formData.append("file_name", fileName);
+        formData.append("column", column);
+
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                body: formData,
+            });
+            if (!response.ok) throw new Error("Server responded with an error");
+
+            const result = await response.json();
+            setDownloadUrl(URL.createObjectURL(new Blob([result.file], { type: "text/csv" })));
+            parseCSV(result.file);
+            setFindK(!findK)
+        } catch (error) {
+            setError("Failed to process the file. Please try again.");
+        }
+    };
+
+    const redactDate = async (options) => {
+        const formData = new FormData();
+        formData.append("file_name", fileName);
+        formData.append("column", options.column);
+        formData.append("redactDay", options.redact_day);
+        formData.append("redactMonth", options.redact_month);
+        formData.append("redactYear", options.redact_year);
+
+        try {
+            const response = await fetch("http://localhost:8000/redactdate", {
+                method: "POST",
+                body: formData,
+            });
+            if (!response.ok) throw new Error("Server responded with an error");
+
+            const result = await response.json();
+            setDownloadUrl(URL.createObjectURL(new Blob([result.file], { type: "text/csv" })));
+            parseCSV(result.file);
+            setFindK(!findK)
+        } catch (error) {
+            setError("Failed to process the file. Please try again.");
+        }
+    };
+
+    const handleSynthesizeNumCol = async(options) => {
+        const formData = new FormData();
+        formData.append("file_name", fileName);
+        formData.append("column", options.column);
+        formData.append("lower", options.lower);
+        formData.append("upper", options.upper);
+        formData.append("datatype", options.datatype);
+
+        try {
+            const response = await fetch("http://localhost:8000/synnumcol", {
+                method: "POST",
+                body: formData,
+            });
+            if (!response.ok) throw new Error("Server responded with an error");
+
+            const result = await response.json();
+            setDownloadUrl(URL.createObjectURL(new Blob([result.file], { type: "text/csv" })));
+            parseCSV(result.file);
+            setFindK(!findK)
+        } catch (error) {
+            setError("Failed to process the file. Please try again.");
+        }
+    }
+
+    const handleSynthesizeCatCol = async(options) => {
+        const formData = new FormData();
+        formData.append("file_name", fileName);
+        formData.append("column", options.column);
+        formData.append("string_list",options.categories);
+
+        try {
+            const response = await fetch("http://localhost:8000/syncatcol", {
+                method: "POST",
+                body: formData,
+            });
+            if (!response.ok) throw new Error("Server responded with an error");
+
+            const result = await response.json();
+            setDownloadUrl(URL.createObjectURL(new Blob([result.file], { type: "text/csv" })));
+            parseCSV(result.file);
+            setFindK(!findK)
+        } catch (error) {
+            setError("Failed to process the file. Please try again.");
+        }
+    }
+
     return (
-        <form onSubmit={handleSubmit} className="form-container">
-            <div className="form-group">
-                <label>Upload CSV File</label>
-                <input type="file" accept=".csv" onChange={handleFileChange} />
+        <div className="max-w-5xl mx-auto">
+            <div className="flex justify-between items-start mb-6">
+                <div className="bg-white rounded-xl shadow-lg p-6 w-2/3">
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <FileUpload handleFileChange={handleFileChange} />
+                        <ErrorMessage error={error} />
+                        <ProcessButton isLoading={isLoading} />
+                    </form>
+                    <RedactColumn redactColumn={redactColumn} setRedactColumn={setRedactColumn} handleRedact={() => processColumn("http://localhost:8000/redactcol", redactColumn)} />
+                    <NormalizeColumn normalizeColumn={normalizeColumn} setNormalizeColumn={setNormalizeColumn} handleNormalize={() => processColumn("http://localhost:8000/groupcol", normalizeColumn)} />
+                    <RedactZip redactzip={redactZip} setRedactzip={setRedactZip} handleRedact={() => processColumn("http://localhost:8000/redactzip", redactZip)} />
+                    <RedactDate handleRedact={redactDate} />
+                    <SyntheticNumCol handleSynthesize={handleSynthesizeNumCol} />
+                    <SyntheticCatCol handleSynthesize={handleSynthesizeCatCol} />
+                </div>
+                <div className="flex flex-col space-y-4">
+                    <KAnonymity file_name={fileName} findK={findK} />
+                    <IDiversity file_name={fileName} findIDiversity={findK} />
+                    <MInvariance file_name={fileName} findMInvariance={findK} />
+                </div>
             </div>
-
-            <div className="form-group">
-                <label>Table Column Names (comma-separated)</label>
-                <input type="text" value={columns} onChange={handleColumnsChange} placeholder="e.g., name, age, address" />
+            <div className="mx-auto">
+                <CSVPreview tableData={tableData} />
+                <DownloadSection downloadUrl={downloadUrl} />
             </div>
-
-            <div className="form-group">
-                <label>K-anonymity Value (k ≥ 1)</label>
-                <input type="number" value={kValue} onChange={handleKChange} min="1" />
-            </div>
-
-            <button type="submit" className="submit-button">Submit</button>
-        </form>
+        </div>
     );
 };
 

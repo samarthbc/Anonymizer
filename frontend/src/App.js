@@ -6,11 +6,13 @@ import {
 } from "react-router-dom";
 import Home from './components/Home';
 import Form from './components/Form';
+import ChangeTheme from './components/ChangeTheme';
 
 function App() {
   return (
     <>
     <Router>
+      {/* <ChangeTheme/> */}
       <Routes>
         <Route path='/' element={<Home/>}/>
         <Route path='/form' element={<Form/>}/>
