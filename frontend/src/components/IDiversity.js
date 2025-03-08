@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { BarChart } from "lucide-react";
+import { SERVER_URL } from "../constants";
 
 const IDiversity = ({ file_name, findIDiversity }) => {
     const [iDiversity, setIDiversity] = useState(null);
@@ -15,7 +16,7 @@ const IDiversity = ({ file_name, findIDiversity }) => {
                 let formData = new FormData();
                 formData.append("file_name", file_name);
                 
-                const response = await fetch("http://localhost:8000/calculateIDiv", {
+                const response = await fetch(SERVER_URL+"/calculateIDiv", {
                     method: "POST",
                     body: formData,
                 });

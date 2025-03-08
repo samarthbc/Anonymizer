@@ -13,6 +13,7 @@ import RedactZip from "./RedactZip";
 import MInvariance from "./MInvarience";
 import SyntheticNumCol from "./SyntheticNumCol";
 import SyntheticCatCol from "./SyntheticCatCol";
+import { SERVER_URL } from "../constants";
 
 const Form = () => {
     const [csvFile, setCsvFile] = useState(null);
@@ -48,7 +49,7 @@ const Form = () => {
         formData.append("file", file);
 
         try {
-            const response = await fetch("http://localhost:8000/input", {
+            const response = await fetch(SERVER_URL+"/input", {
                 method: "POST",
                 body: formData,
             });
@@ -101,7 +102,7 @@ const Form = () => {
         formData.append("redactYear", options.redact_year);
 
         try {
-            const response = await fetch("http://localhost:8000/redactdate", {
+            const response = await fetch(SERVER_URL+"/redactdate", {
                 method: "POST",
                 body: formData,
             });
@@ -125,7 +126,7 @@ const Form = () => {
         formData.append("datatype", options.datatype);
 
         try {
-            const response = await fetch("http://localhost:8000/synnumcol", {
+            const response = await fetch(SERVER_URL+"/synnumcol", {
                 method: "POST",
                 body: formData,
             });
@@ -147,7 +148,7 @@ const Form = () => {
         formData.append("string_list",options.categories);
 
         try {
-            const response = await fetch("http://localhost:8000/syncatcol", {
+            const response = await fetch(SERVER_URL+"/syncatcol", {
                 method: "POST",
                 body: formData,
             });
@@ -171,9 +172,9 @@ const Form = () => {
                         <ErrorMessage error={error} />
                         <ProcessButton isLoading={isLoading} />
                     </form>
-                    <RedactColumn redactColumn={redactColumn} setRedactColumn={setRedactColumn} handleRedact={() => processColumn("http://localhost:8000/redactcol", redactColumn)} />
-                    <NormalizeColumn normalizeColumn={normalizeColumn} setNormalizeColumn={setNormalizeColumn} handleNormalize={() => processColumn("http://localhost:8000/groupcol", normalizeColumn)} />
-                    <RedactZip redactzip={redactZip} setRedactzip={setRedactZip} handleRedact={() => processColumn("http://localhost:8000/redactzip", redactZip)} />
+                    <RedactColumn redactColumn={redactColumn} setRedactColumn={setRedactColumn} handleRedact={() => processColumn(SERVER_URL+"/redactcol", redactColumn)} />
+                    <NormalizeColumn normalizeColumn={normalizeColumn} setNormalizeColumn={setNormalizeColumn} handleNormalize={() => processColumn(SERVER_URL+"/groupcol", normalizeColumn)} />
+                    <RedactZip redactzip={redactZip} setRedactzip={setRedactZip} handleRedact={() => processColumn(SERVER_URL+"/redactzip", redactZip)} />
                     <RedactDate handleRedact={redactDate} />
                     <SyntheticNumCol handleSynthesize={handleSynthesizeNumCol} />
                     <SyntheticCatCol handleSynthesize={handleSynthesizeCatCol} />

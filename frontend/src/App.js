@@ -14,8 +14,8 @@ function App() {
     <Router>
       {/* <ChangeTheme/> */}
       <Routes>
-        <Route path='/' element={<Home/>}/>
-        <Route path='/form' element={<Form/>}/>
+        {/* <Route path='/' element={<Home/>}/> */}
+        <Route path='/' element={<Form/>}/>
       </Routes>
       </Router>
     </>

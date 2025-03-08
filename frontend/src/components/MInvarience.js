@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ShieldAlert } from "lucide-react";
+import { SERVER_URL } from "../constants";
 
 const MInvariance = ({ file_name, findMInvariance }) => {
     const [mValue, setMValue] = useState(null);
@@ -16,7 +17,7 @@ const MInvariance = ({ file_name, findMInvariance }) => {
                 let formData = new FormData();
                 formData.append("file_name", file_name);
 
-                const response = await fetch("http://localhost:8000/calculateMInvar", {
+                const response = await fetch(SERVER_URL+"/calculateMInvar", {
                     method: "POST",
                     body: formData,
                 });

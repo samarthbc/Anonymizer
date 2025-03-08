@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ShieldCheck } from "lucide-react"; // Adding an icon for a polished look
+import { SERVER_URL } from "../constants";
 
 const KAnonymity = ({ file_name, findK }) => {
     const [kAnonymity, setKAnonymity] = useState(null);
@@ -13,7 +14,7 @@ const KAnonymity = ({ file_name, findK }) => {
                 console.log(file_name);
                 let formData = new FormData();
                 formData.append("file_name", file_name);
-                const response = await fetch("http://localhost:8000/calculateK", {
+                const response = await fetch(SERVER_URL+"/calculateK", {
                     method: "POST",
                     body: formData,
                 });
